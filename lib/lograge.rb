@@ -114,8 +114,12 @@ module Lograge
 
   def self.setup(app)
     app.config.action_dispatch.rack_cache[:verbose] = false if app.config.action_dispatch.rack_cache
-    require 'lograge/rails_ext/rack/logger'
-    Lograge.remove_existing_log_subscriptions
+    unless app.config.lograge.keep_original_rails_log
+      require 'lograge/rails_ext/rack/logger'
+      Lograge.remove_existing_log_subscriptions
+    end
+    Lograge.logger = app.config.lograge.alternate_logger || app.config.lograge.logger
+
     Lograge::RequestLogSubscriber.attach_to :action_controller
     Lograge.custom_options = app.config.lograge.custom_options
     Lograge.before_format = app.config.lograge.before_format
